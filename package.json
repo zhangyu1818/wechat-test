@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "run": "node ./dist/index.js"
+    "run": "tsc && node ./dist/index.js"
   },
   "devDependencies": {
     "@types/node": "^18.8.4",
