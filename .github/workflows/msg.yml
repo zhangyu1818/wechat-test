@@ -3,7 +3,7 @@ name: wechat-test
 on:
   workflow_dispatch:
   schedule:
-    - cron: '59 23 * * *'
+    - cron: '30 23 * * *'
 
 jobs:
   cache-and-install:
@@ -49,4 +49,4 @@ jobs:
           APPCODE: ${{secrets.APPCODE}}
           TEMPLATE_ID: ${{secrets.TEMPLATE_ID}}
           TO_USER_ID: ${{secrets.TO_USER_ID}}
-
+          GITHUB_API_KEY: ${{secrets.GITHUB_API_KEY}}

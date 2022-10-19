@@ -1,6 +1,8 @@
 import axios from 'axios'
-import * as process from 'process'
+import dayjs from 'dayjs'
+import { Octokit } from 'octokit'
 
+const octokit = new Octokit({ auth: process.env.GITHUB_API_KEY })
 const request = axios.create()
 
 const mojiRequest = axios.create({
@@ -55,3 +57,35 @@ export const getWeather = (cityId: string) =>
       token: '50b53ff8dd7d9fa320d3d3ca32cf8ed1',
     })
     .then((res) => res.data)
+
+const requestGithubContent = (path: string) =>
+  octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
+    owner: 'Wei-Xia',
+    repo: 'most-frequent-technology-english-words',
+    path,
+  })
+
+export const getWordFromGithubRepo = async () => {
+  try {
+    const startDay = dayjs('2022-10-20')
+    const { data: mdFiles } = await requestGithubContent('_posts')
+
+    const index = dayjs().diff(startDay, 'd')
+    const currentMDFile = mdFiles[index]
+    const { path } = currentMDFile
+    const { data } = await requestGithubContent(path)
+
+    return Buffer.from((data as any).content, 'base64')
+      .toString('utf8')
+      .replaceAll('-', '')
+      .trim()
+      .split('\n')
+      .reduce((map, currentValue) => {
+        const [key, value] = currentValue.split(/:\s*/)
+        map[key] = value || '无'
+        return map
+      }, {})
+  } catch {
+    return { word: '粗错了' }
+  }
+}

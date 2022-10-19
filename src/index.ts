@@ -4,9 +4,8 @@ import dayjs from 'dayjs'
 import zh_CN from 'dayjs/locale/zh-cn'
 
 import {
-  getCarLimit,
-  getLivingIndex,
   getWeather,
+  getWordFromGithubRepo,
   requestWechatAccessToken,
   sentWechatTemplateMsg,
 } from './service'
@@ -20,39 +19,18 @@ const getAccessToken = () => {
   return requestWechatAccessToken(appID, appSecret)
 }
 
-const sendWeatherInfo = async (limitNumber: string) => {
-  const [carLimit, livingIndex, weather] = await Promise.all(
-    [getCarLimit, getLivingIndex, getWeather].map((fn) => fn('285195'))
-  )
+const sendMessage = async () => {
+  const [weather, englishWord] = await Promise.all([
+    getWeather('285195'),
+    getWordFromGithubRepo(),
+  ])
   const {
     data: { condition },
   } = weather
 
-  const {
-    data: { limit },
-  } = carLimit
-  const today = dayjs().format('YYYY-MM-DD')
-  const isTodayLimit = limit.some(
-    (item) => item.date === today && item.prompt.includes(limitNumber)
-  )
-
-  const {
-    data: { liveIndex },
-  } = livingIndex
-  const currentLivingIndex = liveIndex[today]
-
-  const makeupDesc = currentLivingIndex.find(
-    (item) => item.name === '化妆指数'
-  )?.desc
-  const dressingDesc = currentLivingIndex.find(
-    (item) => item.name === '穿衣指数'
-  )?.desc
-
   const templateData = {
     ...condition,
-    carLimit: isTodayLimit ? '限号' : '不限号',
-    makeupDesc,
-    dressingDesc,
+    ...englishWord,
   }
 
   Object.keys(templateData).forEach((key) => {
@@ -72,4 +50,4 @@ const sendWeatherInfo = async (limitNumber: string) => {
   })
 }
 
-sendWeatherInfo('9')
+sendMessage()
